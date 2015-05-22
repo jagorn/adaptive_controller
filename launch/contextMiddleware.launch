@@ -1,0 +1,24 @@
+<launch>
+
+ <node
+  pkg="adaptive_controller"
+  type="contextNode.py"
+  name="context_middleware"
+  respawn="true"
+ />
+
+ <node
+  pkg="adaptive_controller"
+  type="testInput.py"
+  name="test_context_input"
+  respawn="true"
+ />
+
+ <node
+  pkg="adaptive_controller"
+  type="testOutput.py"
+  name="test_context_output"
+  respawn="true"
+ />
+
+</launch>

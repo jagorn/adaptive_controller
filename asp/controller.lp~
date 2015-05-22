@@ -1,0 +1,58 @@
+% FACTS
+#program base.
+
+% problem instance
+room(1..5).
+door(2, 3;1).
+door(3, 4;2).
+door(4, 5;3).
+door(5, 1;4).
+
+holds(sBot, at(1), 0).
+
+% ROSoClingo settings
+id(1..5).
+robot(sBot).
+value(success; failure).
+
+% actions 
+action(moveTo(Room)) : room(Room).
+
+% context
+context(doorClosed(A,B)) :- room(A), room(B), door(A, B).
+
+% TIME RULES
+#program transition(t).
+
+% situation calculus
+{_action(Robot, Action, t): action(Action)}1 :- robot(Robot).
+:- _action(Robot, Action, t), not possible(Robot, Action, t).
+
+possible(Robot, moveTo(B), t) :- holds(at(A), t-1), door(A, B), robot(Robot), action(Action), not _context(doorClosed(A,B)).
+
+holds(Robot, at(B), t) :- _action(Robot, moveTo(B), t), not _value(Robot,failure,t), holds(at(A), t-1), door(A, B).
+holds(Robot, at(B), t) :- robot(Robot), room(B), not _action(Robot, moveTo(_), t), holds(at(A), t-1).
+holds(Robot, at(B), t) :- _value(Robot, failure, t), holds(at(B), t-1).
+
+holds(request(ID, Action), t) :- _request(ID, Action, t).
+holds(request(ID, Action), t) :- holds(request(ID, Action), t-1).
+
+holds(fulfilled(ID), t) :- holds(request(ID, Action), t), _action(Robot, Action, t), not _value(Robot, failure, t).
+holds(fulfilled(ID), t) :- _cancel(ID, t).
+holds(fulfilled(ID), t) :- holds(fulfilled(ID), t-1).
+
+% goals
+goal(t) :- holds(fulfilled(ID),t) : holds(request(ID,_),t).
+:- not goal(t), horizon(t).
+
+% externals
+#external _request(ID, A, t): id(ID), action(A).
+#external _cancel(ID, t) : id(ID).
+#external _value(Robot, Value, t): robot(Robot), value(Value).
+#external _context(Context): context(Context).
+#external horizon(t).
+
+% show
+#show holds/3.
+#show _action/3.
+#show _context/1.

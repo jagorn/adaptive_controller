@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find adaptive_controller)/launch/controller.launch" />
+  <include file="$(find adaptive_controller)/launch/contextMiddleware.launch" />
+</launch>
