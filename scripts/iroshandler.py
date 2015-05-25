@@ -32,13 +32,13 @@ class HandleCommunication:
 
     def send_message(self, message):
         if not (message.id, self.GetTime()) in self.SendMessages:
-            self.AddSend(message.id)
+            self.AddSend(message)
             self.SendMessages.append((message.id, self.GetTime()))
             self.Publisher.publish(message)
 
     def receive_message(self, message):
         if not (message, self.GetTime()) in self.ReceivedMessages:
-            self.AddReceive(message.id)
+            self.AddReceive(message)
             self.ReceivedMessages.append((message, self.GetTime()))
             self.SetExternals(self.MessageToSolver(message, self.GetTime()))
 
