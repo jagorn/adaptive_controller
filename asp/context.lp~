@@ -1,5 +1,0 @@
-#program base.
-
-
-#external doorClosed(A, B): room(A), room(B).
-#show doorClosed/2.
