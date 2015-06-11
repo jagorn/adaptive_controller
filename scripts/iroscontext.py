@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+#
+#  Author: Francesco Trapani
+#
+# Ros node bridge between the context middleware and the main reasoner.
+# It observes the context middleware output, and when a new contextual model is published, it updates the knowledge
+# of the main reasoner.
+
 import rospy
 from contextCommunication import ContextCommunication
 
@@ -21,6 +28,10 @@ class HandleContext:
         return True
 
     def __on_received_context(self, message):
+        """
+        Callback for context model messages reception.
+        Updates the ASP knowledge accordingly to the newly received contextual model.
+        """
         old_context_model = self.__context_model
         self.__context_model = self.__communication.out_message2atoms(message)
 

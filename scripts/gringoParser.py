@@ -1,8 +1,16 @@
 #! /usr/bin/env python
+#
+#  Authors: Francesco Trapani,
+#  Benjamin Andres, Philipp Obermeier, Orkunt Sabuncu, Torsten Schaub, David Rajaratnam
+#
+# Utility class for converting strings into ASP assertions
 import gringo
 
 
 def string2fun(string):
+    """
+    Converts a string into an ASP assertion
+    """
     parenthesis = string.find("(")
     if string.isdigit():
         return int(string)
@@ -18,6 +26,9 @@ def string2fun(string):
 
 
 def _string2list(string):
+    """
+    Converts a string representing a list of parameters into a list of strings
+    """
     list = []
     open = 1
     last = 0

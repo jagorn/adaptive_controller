@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+#
+#  Author: Francesco Trapani
+#
+# Class for the estimation of the contextual model.
+# This class handles an ASP reasoner, which takes in input context assertions and outputs a contextual model.
+# When initialized, the static knowledge stored in an lp file is loaded.
+# Every time an input message is received, the new assertions are added to the knowledge, and a new model is estimated.
+
 import rospy
 import rospkg
 import gringo
@@ -16,6 +24,10 @@ class ContextMiddleware:
     __model = []
 
     def __init__(self):
+        """
+        Class inizialization.
+        The solver is initialized and the static knowledge is loaded from a file.
+        """
         self.__communication = contextCommunication.ContextCommunication()
 
         package = rospkg.RosPack()
@@ -32,10 +44,11 @@ class ContextMiddleware:
         rospy.Subscriber(self.__communication.in_topic, self.__communication.in_message, self.__on_received_context)
 
     def __on_received_context(self, input_msg):
-
-        # ROS log
+        """
+        Callback for ContextInput messages reception.
+        The assertions contained in the incoming messages are loaded, and a  new model is estimated
+        """
         log_message = "ContextMiddleware - input received:\n"
-
         self.__future.interrupt()
         atoms2values = self.__communication.in_message2atoms_values(input_msg)
         for atom, value in atoms2values.iteritems():
@@ -56,6 +69,9 @@ class ContextMiddleware:
         self.__interrupted = interrupted
 
     def __publish_context(self):
+        """
+        Publishes a message with all the assertions contained in the new current context model
+        """
         context_msg = self.__communication.atoms2out_message(self.__model)
         self.__publisher.publish(context_msg)
 

@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+#
+#  Authors: Benjamin Andres, Philipp Obermeier, Orkunt Sabuncu, Torsten Schaub, David Rajaratnam
+#  Extended and modified by Francesco Trapani
+#
+# Main ROS node of the reasoning module.
+# This class initializes all the components of the reasoning module, and provides some utility functions
+# to convert the messages received by the other components into ASP assertions
+
 import rospy
 import sys
 from gringo import Fun
@@ -30,7 +38,16 @@ def cancel_to_solver(id, time):
 
 
 def message_to_solver(message, time):
-    return {Fun("_value", [gringoParser.string2fun(message.id), gringoParser.string2fun(message.value), time]): True}
+    return {Fun("_value", [gringoParser.string2fun(message.robot),
+                           gringoParser.string2fun(message.action),
+                           gringoParser.string2fun(message.value), time]): True}
+
+
+def solver_to_message(robot, action):
+    message = handler.out_message()
+    message.robot = str(robot)
+    message.action = str(action)
+    return message
 
 
 def context_to_solver(assertions2values):
@@ -40,14 +57,7 @@ def context_to_solver(assertions2values):
         context[context_assertion] = value
     return context
 
-
-def solver_to_message(id, action):
-    message = handler.out_message()
-    message.id = str(id)
-    message.action = str(action)
-    return message
-
-# ROS part
+# ROS node
 rospy.init_node('ROSoClingo', argv=sys.argv, anonymous=True)
 (arguments, files) = separate_parameter(rospy.myargv(sys.argv[1:]))
 handler = RosoclingoCommunication()
@@ -57,8 +67,4 @@ handle_request = iroshandler.HandleRequest(handler.action_topic, handler.action,
 handle_solver = iroshandler.HandleSolver(arguments, files, solver_to_message)
 handle_context = iroscontext.HandleContext(context_to_solver)
 rosoclingo = icontroller.ROSoClingo(handle_request,handle_solver, handle_communication, handle_context)
-
-# ROS log
-rospy.loginfo('ROSoClingo - ready\n')
-
 rospy.spin()

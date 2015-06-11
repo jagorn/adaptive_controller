@@ -1,4 +1,8 @@
 #! /usr/bin/env python
+#
+#  Author: Francesco Trapani
+#
+# Simple node simulating the request of tasks.
 
 import rospy
 import actionlib
@@ -6,6 +10,10 @@ from rosoclingoCommunication import RosoclingoCommunication
 
 
 def execute():
+    """
+    Publishes on the  task request topic some simple task requests messages, and some after a fixed amount of time
+    cancels some of the requests.
+    """
     communication = RosoclingoCommunication()
     client = actionlib.ActionClient(communication.action_topic, communication.action)
     client.wait_for_server()
@@ -35,16 +43,10 @@ def execute():
     rospy.loginfo('MinimalRequest - request %s canceled\n', request2)
     rospy.sleep(2.0)
 
-#    goal1.cancel()
-#    rospy.loginfo('MinimalRequest - request %s canceled\n', request1)
-
+# ROS node
 if __name__ == '__main__':
     try:
         rospy.init_node('minimal_request')
-
-        # ROS log
-        rospy.loginfo('MinimalRequest - ready\n')
-
         execute()
         rospy.spin()
 

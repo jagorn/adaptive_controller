@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+#
+#  Authors: Benjamin Andres, Philipp Obermeier, Orkunt Sabuncu, Torsten Schaub, David Rajaratnam
+#  Extended and modified by Francesco Trapani
+
 import rospy
 import actionlib
 import gringo
@@ -31,15 +35,11 @@ class HandleCommunication:
         return True
 
     def send_message(self, message):
-        if not (message.id, self.GetTime()) in self.SendMessages:
-            self.AddSend(message)
-            self.SendMessages.append((message.id, self.GetTime()))
+        if self.AddSend(message):
             self.Publisher.publish(message)
 
     def receive_message(self, message):
-        if not (message, self.GetTime()) in self.ReceivedMessages:
-            self.AddReceive(message)
-            self.ReceivedMessages.append((message, self.GetTime()))
+        if self.AddReceive(message):
             self.SetExternals(self.MessageToSolver(message, self.GetTime()))
 
 
@@ -128,7 +128,7 @@ class HandleSolver:
         self.Solver.ground([("transition", [self.Step])])
         self.Solver.assign_external(gringo.Fun("horizon", [self.Step]), True)
 
-    def start(self,get_time, check_time, handle_goal,send_message):
+    def start(self,get_time, check_time, handle_goal, send_message):
         self.GetTime = get_time
         self.CheckTime = check_time
         self.HandleGoal = handle_goal
@@ -145,18 +145,21 @@ class HandleSolver:
 
     def set_externals(self, externals2values):
         self.Future.interrupt()
+
         while self.Step < self.GetTime():
             self.Step += 1
             if self.Step > 1:
                 self.Solver.release_external(gringo.Fun("horizon", [self.Step-1]))
             self.Solver.ground([("transition", [self.Step])])
             self.Solver.assign_external(gringo.Fun("horizon", [self.Step]), True)
+
         for external, value in externals2values.iteritems():
             self.Solver.assign_external(external, value)
+
         self.interrupted = True
         self.Atoms = []
         self.Shown = []
-        self.Future = self.Solver.solve_async([],self.on_model,self.on_finish)
+        self.Future = self.Solver.solve_async([], self.on_model, self.on_finish)
         parts = []
 
         # ROS log
@@ -164,17 +167,19 @@ class HandleSolver:
         rospy.loginfo(log_message)
 
         while self.Future.get() == gringo.SolveResult.UNSAT and self.interrupted is False:
+
             self.Step += 1
-            rospy.logdebug("ROS0Clingo - step incremented to "+ str(self.Step) + "\n")
             parts.append(("transition", [self.Step]))
             if self.Step > 1:
                 self.Solver.release_external(gringo.Fun("horizon", [self.Step-1]))
             self.Solver.ground(parts)
             self.Solver.assign_external(gringo.Fun("horizon", [self.Step]), True)
+
             self.interrupted = True
             self.Atoms = []
             parts = []
             self.Future = self.Solver.solve_async(None, self.on_model, self.on_finish)
+
         log_message = "ROS0Clingo - knowledge solved\n"
         if self.Future.get() == gringo.SolveResult.SAT and self.interrupted is False:
             self.CheckTime()

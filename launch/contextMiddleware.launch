@@ -4,6 +4,7 @@
   pkg="adaptive_controller"
   type="contextNode.py"
   name="context_middleware"
+  output="screen"
   respawn="true"
  />
 
@@ -11,6 +12,7 @@
   pkg="adaptive_controller"
   type="testInput.py"
   name="test_context_input"
+  output="screen"
   respawn="true"
  />
 
@@ -18,6 +20,7 @@
   pkg="adaptive_controller"
   type="testOutput.py"
   name="test_context_output"
+  output="screen"
   respawn="true"
  />
 
